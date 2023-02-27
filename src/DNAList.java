@@ -13,19 +13,35 @@ public class DNAList {
     static String type;
     static String firstIndex;
     static String secondIndex;
+    static int start;
+    static int end;
     static int intPos = 0;
+    static int intFirstIndex = 0;
+    static int intSecondIndex = 0;
     static char[] charSequence;
     static ArrayList<String> printingAll = new ArrayList<String>();
 
     public static void main(String[] args) {
-        File input = new File (args[0]);
-        BufferedReader reader;
+
+                if (args.length < 2) {
+                    System.err.println("Usage: java DNAList <array-size> <command-file>");
+                    System.exit(1);
+                }
+
+                int arraySize = Integer.parseInt(args[0]);
+                String commandFile = args[1];
+
+                // Your code goes here
+            }
+        }
+
+
         //reading the file line by line
         try {
-            reader = new BufferedReader(new FileReader(input));
-            String line = reader.readLine();
-
-            while (line != null) {
+            File file = new File("in.txt");
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
                 String arr[] = line.split("\\ ", 4);
                 String firstWord = arr[0];
                 //insert
@@ -44,17 +60,26 @@ public class DNAList {
                     remove();
                 }
                 //print
-                else if (firstWord.equalsIgnoreCase("print")) {
+                else if (firstWord.equalsIgnoreCase("print") && arr.length == 2) {
+                    intPos = Integer.parseInt(arr[1]);
+                    printElement();
+                }
+                else if (firstWord.equalsIgnoreCase("print") && arr.length == 1) {
                     print();
                 }
                 //clip
                 else if (firstWord.equalsIgnoreCase("clip")) {
+                    intPos = Integer.parseInt(arr[1]);
+                    start = Integer.parseInt(arr[2]);
+                    end = Integer.parseInt(arr[3]);
                     clip();
                 }
                 //copy
                 else if (firstWord.equalsIgnoreCase("copy")) {
                     firstIndex = arr[1];
                     secondIndex = arr[2];
+                    intFirstIndex = Integer.parseInt(firstIndex);
+                    intSecondIndex = Integer.parseInt(secondIndex);
                     copy();
                 }
                 //transcribe
@@ -63,58 +88,70 @@ public class DNAList {
                     intPos = Integer.parseInt(pos);
                     transcribe();
                 }
-                //System.out.println(line);
                 // read next line
-                line = reader.readLine();
             }
 
-            reader.close();
-            //s.close();
+            scanner.close();
+
         }
         catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("File not found.");
         }
         catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("File not found.");
         }
-        //DNA = A,C,G,T
-        //RNA = A,C,G,U
     }
 
     //insert method
     public static void insert() {
-        //if contains A, C, G, T, U and if position = a numbered index then add it to that index of arraylist
-        if (sequence.contains("A") && sequence.contains("C") && sequence.contains("G") || sequence.contains("T") || sequence.contains("U")) {
-            //makes sequenceArray the correct size which also makes it so that the index size exists
-            if (sequenceArray.size() < intPos) {
-                for (int i = sequenceArray.size(); i < intPos; i++) {
-                    sequenceArray.add(null);
-                    printingAll.add(null);
+        //if DNA doesn't contain A, C, G, T or if RNA doesn't contain A, C, G, U and if position = a numbered index then add it to that index of arraylist
+        //if it doesn't contain those letter for DNA and RNA respectively then print “Error occurred while inserting”.
+        for (int i = 0; i < sequence.length(); i++) {
+            if (type.equalsIgnoreCase("DNA")) {
+                if (!(sequence.charAt(i) == 'A' || sequence.charAt(i) == 'C' || sequence.charAt(i) == 'G' || sequence.charAt(i) == 'T')) {
+                    System.out.println("Error occured while inserting");
+                    return;
                 }
             }
-            //for putting the bioSequence into a LinkedList of Characters
-            LinkedList<Character> bioSequence = new LinkedList<Character>();
-            for (int i = 0; i < charSequence.length; i++) {
-                bioSequence.add(charSequence[i]);
+            if (type.equalsIgnoreCase("RNA")) {
+                if (!(sequence.charAt(i) == 'A' || sequence.charAt(i) == 'C' || sequence.charAt(i) == 'G' || sequence.charAt(i) == 'U')) {
+                    System.out.println("Error occured while inserting");
+                    return;
+                }
             }
-            //printing the index of arraySequence
-            sequenceArray.add(intPos,bioSequence);
-            printingAll.add(intPos, "" + intPos + "\t" + type);
-            if (intPos < (sequenceArray.size())-1) {
-                sequenceArray.remove(intPos+1);
-                printingAll.remove(intPos+1);
+        }
+        //makes sequenceArray the correct size which also makes it so that the index size exists
+        if (sequenceArray.size() < intPos) {
+            for (int i = sequenceArray.size(); i <= intPos; i++) {
+                sequenceArray.add(null);
+                printingAll.add(null);
             }
-            print();
         }
-        //if it doesn't contain those letter then print “Error occurred while inserting”.
-        else {
-            System.out.println("Error occured while inserting");
+        //for putting the bioSequence into a LinkedList of Characters
+        LinkedList<Character> bioSequence = new LinkedList<Character>();
+        for (int i = 0; i < charSequence.length; i++) {
+            bioSequence.add(charSequence[i]);
         }
+        //printing the index of arraySequence
+        sequenceArray.add(intPos,bioSequence);
+        printingAll.add(intPos, "" + intPos + "\t" + type);
+        if (intPos < (sequenceArray.size())-1) {
+            sequenceArray.remove(intPos+1);
+            printingAll.remove(intPos+1);
+        }
+        print();
     }
 
     //remove method OVERLOAD THS METHOD
     public static void remove() {
-        //sequenceArray.remove(new LinkedList<Character>());
+        if (intPos < (sequenceArray.size()) && sequenceArray.get(intPos) != null) {
+            sequenceArray.set(intPos,null);
+            printingAll.set(intPos,null);
+            print();
+        }
+        else {
+            System.out.println("No sequence to remove at specified position");
+        }
     }
 
     //print method OVERLOAD THIS METHOD FOR PRINT POS
@@ -127,19 +164,103 @@ public class DNAList {
         }
         System.out.println();
     }
+    //print single sequence
+    public static void printElement() {
+        System.out.println();
+        if (sequenceArray.get(intPos) != null) {
+            System.out.println(printingAll.get(intPos) + "\t" + sequenceArray.get(intPos));
+        }
+        else System.out.println("No sequence to print at specified position");
+        System.out.println();
+
+    }
 
     //clip method
     public static void clip() {
-
+        LinkedList<Character> clipBioSequence = new LinkedList<Character>();
+        //if the start and end are not within the sequence then print “Error occurred while clipping”
+        if (sequenceArray.get(intPos) == null) {
+            System.out.println("No sequence at specified position");
+            return;
+        }
+        if (start < 0) {
+            System.out.println("Invalid start index");
+            return;
+        }
+        if (start > sequenceArray.get(intPos).size()) {
+            System.out.println("Start index is out of bounds");
+            return;
+        }
+        if (end > sequenceArray.get(intPos).size()) {
+            System.out.println("End index is out of bounds");
+            return;
+        }
+        //check if there is a sequence at the index
+        if (start>=0 && sequenceArray.get(intPos) != null) {
+            //check if the start and end are within the sequence
+            if (start<end) {
+                if (end<=sequenceArray.get(intPos).size()){
+                    //clipBioSequence = sequenceArray.get(intPos);
+                    int clipLength = end-start;
+                    for (int i = 0; i <= clipLength; i++) {
+                        char tempLinkedListChar = sequenceArray.get(intPos).get(start+i);
+                        clipBioSequence.add(i,tempLinkedListChar);
+                    }
+                    sequenceArray.set(intPos,clipBioSequence);
+                }
+            }
+        }
     }
 
     //copy method
     public static void copy() {
-
+        //sets the first index to the second index
+        if (sequenceArray.get(intFirstIndex) != null && sequenceArray.get(intSecondIndex) != null) {
+            sequenceArray.set(intSecondIndex,sequenceArray.get((intFirstIndex)));
+        }
+        else {
+            System.out.println("No sequence to copy at specified position");
+        }
     }
 
     //transcribe method
     public static void transcribe() {
+        if (sequenceArray.get(intPos) == null) {
+            System.out.println("No sequence to transcribe at specified position");
+            return;
+        }
+        if (printingAll.get(intPos).contains("RNA")) {
+            System.out.println("Cannot transcribe RNA");
+            return;
+        }
+        if (printingAll.get(intPos).contains("DNA")) {
+            while (sequenceArray.get(intPos).contains('T')) {
+                int index = sequenceArray.get(intPos).indexOf('T');
+                sequenceArray.get(intPos).set(index,'U');
+            }
 
+            //Switch statement for complementing the DNA to RNA
+            for (int i = 0; i < sequenceArray.get(intPos).size(); i++) {
+                switch (sequenceArray.get(intPos).get(i)) {
+                    case 'A':
+                        sequenceArray.get(intPos).set(i,'U');
+                        break;
+                    case 'C':
+                        sequenceArray.get(intPos).set(i,'G');
+                        break;
+                    case 'G':
+                        sequenceArray.get(intPos).set(i,'C');
+                        break;
+                    case 'U':
+                        sequenceArray.get(intPos).set(i,'A');
+                        break;
+                }
+            }
+
+            //change the printingAll to RNA
+            printingAll.set(intPos,printingAll.get(intPos).replace("DNA","RNA"));
+
+
+        }
     }
 }
